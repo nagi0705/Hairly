@@ -1,6 +1,7 @@
 import SwiftUI
 import FirebaseCore
 
+// Firebaseの初期化用 AppDelegate
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
