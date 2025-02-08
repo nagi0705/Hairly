@@ -1,9 +1,10 @@
 import SwiftUI
+import FirebaseAuth
 
 struct SignUpView: View {
     @State private var email: String = ""
     @State private var password: String = ""
-    @EnvironmentObject var authViewModel: AuthViewModel  // 🔥 修正: メッセージをグローバルに管理
+    @EnvironmentObject var authViewModel: AuthViewModel
 
     var body: some View {
         VStack(spacing: 20) {
@@ -11,6 +12,14 @@ struct SignUpView: View {
                 .font(.largeTitle)
                 .bold()
                 .padding(.top, 40)
+
+            // 🔥 ログアウト後のメッセージを表示
+            if !authViewModel.logoutMessage.isEmpty {
+                Text(authViewModel.logoutMessage)
+                    .foregroundColor(.red)
+                    .bold()
+                    .padding()
+            }
 
             TextField("メールアドレス", text: $email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -21,7 +30,7 @@ struct SignUpView: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
 
-            Button(action: { authViewModel.signUp(email: email, password: password) }) {
+            Button(action: signUp) {
                 Text("サインアップ")
                     .font(.title2)
                     .bold()
@@ -33,7 +42,7 @@ struct SignUpView: View {
             }
             .padding()
 
-            Button(action: { authViewModel.login(email: email, password: password) }) {
+            Button(action: login) {
                 Text("ログイン")
                     .font(.title2)
                     .bold()
@@ -45,14 +54,17 @@ struct SignUpView: View {
             }
             .padding()
 
-            Text(authViewModel.message)  // 🔥 修正: グローバルのメッセージを表示
-                .foregroundColor(.red)
-                .bold()
-                .padding()
-
             Spacer()
         }
         .padding()
+    }
+
+    func signUp() {
+        authViewModel.signUp(email: email, password: password) {}
+    }
+
+    func login() {
+        authViewModel.login(email: email, password: password) {}
     }
 }
 

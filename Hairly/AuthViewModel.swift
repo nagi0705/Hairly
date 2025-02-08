@@ -3,30 +3,27 @@ import FirebaseAuth
 
 class AuthViewModel: ObservableObject {
     @Published var isLoggedIn: Bool = Auth.auth().currentUser != nil
-    @Published var message: String = ""  // 🔥 追加: メッセージをグローバルに管理
+    @Published var logoutMessage: String = "" // 🔥 ログアウトメッセージ
+    @Published var isNewUser: Bool = false   // 🔥 追加
 
-    func signUp(email: String, password: String) {
+    func signUp(email: String, password: String, completion: @escaping () -> Void) {
         Auth.auth().createUser(withEmail: email, password: password) { result, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.message = "エラー: \(error.localizedDescription)"
-                } else {
-                    self.message = "ようこそ！"
-                    self.isLoggedIn = true
-                }
+            if let _ = result {
+                self.isLoggedIn = true
+                self.isNewUser = true  // 🔥 新規ユーザーのフラグを立てる
+                self.logoutMessage = "ようこそ！"
+                completion()
             }
         }
     }
 
-    func login(email: String, password: String) {
+    func login(email: String, password: String, completion: @escaping () -> Void) {
         Auth.auth().signIn(withEmail: email, password: password) { result, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    self.message = "エラー: \(error.localizedDescription)"
-                } else {
-                    self.message = "おかえり⭐︎"
-                    self.isLoggedIn = true
-                }
+            if let _ = result {
+                self.isLoggedIn = true
+                self.isNewUser = false  // 🔥 既存ユーザーなので false
+                self.logoutMessage = "おかえり⭐︎"
+                completion()
             }
         }
     }
@@ -34,14 +31,10 @@ class AuthViewModel: ObservableObject {
     func signOut() {
         do {
             try Auth.auth().signOut()
-            DispatchQueue.main.async {
-                self.message = "また後ほど♪"
-                self.isLoggedIn = false
-            }
+            self.logoutMessage = "また後ほど♪"
+            self.isLoggedIn = false
         } catch {
-            DispatchQueue.main.async {
-                self.message = "エラー: \(error.localizedDescription)"
-            }
+            print("エラー: \(error.localizedDescription)")
         }
     }
 }

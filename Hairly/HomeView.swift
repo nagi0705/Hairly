@@ -10,7 +10,27 @@ struct HomeView: View {
                 .font(.largeTitle)
                 .bold()
 
-            Button(action: { authViewModel.signOut() }) {
+            // 📌 ログインメッセージ
+            Text(authViewModel.isNewUser ? "ようこそ！" : "おかえり⭐︎")
+                .foregroundColor(.blue)
+                .bold()
+                .padding()
+
+            // 📌 チャット画面に移動するボタン
+            NavigationLink(destination: ChatView()) {
+                Text("チャットを開く")
+                    .font(.title2)
+                    .bold()
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .padding()
+
+            // 📌 ログアウトボタン
+            Button(action: authViewModel.signOut) {
                 Text("ログアウト")
                     .font(.title2)
                     .bold()
@@ -21,11 +41,6 @@ struct HomeView: View {
                     .cornerRadius(10)
             }
             .padding()
-
-            Text(authViewModel.message)  // 🔥 修正: グローバルのメッセージを表示
-                .foregroundColor(.blue)
-                .bold()
-                .padding()
 
             Spacer()
         }
