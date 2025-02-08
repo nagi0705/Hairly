@@ -12,14 +12,19 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
 @main
 struct HairlyApp: App {
-    // Firebaseの初期化
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject var authViewModel = AuthViewModel()  // 🔥 追加
 
     var body: some Scene {
         WindowGroup {
             NavigationView {
-                ContentView()
+                if authViewModel.isLoggedIn {
+                    HomeView()
+                } else {
+                    SignUpView()
+                }
             }
+            .environmentObject(authViewModel)  // 🔥 追加
         }
     }
 }
