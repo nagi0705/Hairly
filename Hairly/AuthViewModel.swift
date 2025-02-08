@@ -2,22 +2,46 @@ import SwiftUI
 import FirebaseAuth
 
 class AuthViewModel: ObservableObject {
-    @Published var isLoggedIn: Bool = Auth.auth().currentUser != nil  // 🔥 初期値を現在のログイン状態に設定
+    @Published var isLoggedIn: Bool = Auth.auth().currentUser != nil
+    @Published var message: String = ""  // 🔥 追加: メッセージをグローバルに管理
 
-    init() {
-        checkLoginStatus()
+    func signUp(email: String, password: String) {
+        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.message = "エラー: \(error.localizedDescription)"
+                } else {
+                    self.message = "ようこそ！"
+                    self.isLoggedIn = true
+                }
+            }
+        }
     }
 
-    func checkLoginStatus() {
-        isLoggedIn = Auth.auth().currentUser != nil
+    func login(email: String, password: String) {
+        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.message = "エラー: \(error.localizedDescription)"
+                } else {
+                    self.message = "おかえり⭐︎"
+                    self.isLoggedIn = true
+                }
+            }
+        }
     }
 
     func signOut() {
         do {
             try Auth.auth().signOut()
-            isLoggedIn = false  // 🔥 ログアウト後、SignUpViewに戻る
+            DispatchQueue.main.async {
+                self.message = "また後ほど♪"
+                self.isLoggedIn = false
+            }
         } catch {
-            print("エラー: \(error.localizedDescription)")
+            DispatchQueue.main.async {
+                self.message = "エラー: \(error.localizedDescription)"
+            }
         }
     }
 }

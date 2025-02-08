@@ -2,7 +2,7 @@ import SwiftUI
 import FirebaseAuth
 
 struct HomeView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel  // 🔥 AuthViewModel を利用
+    @EnvironmentObject var authViewModel: AuthViewModel
 
     var body: some View {
         VStack(spacing: 20) {
@@ -10,14 +10,7 @@ struct HomeView: View {
                 .font(.largeTitle)
                 .bold()
 
-            // 現在ログイン中のユーザーのメールアドレスを表示
-            if let user = Auth.auth().currentUser {
-                Text("ログイン中: \(user.email ?? "不明なユーザー")")
-                    .font(.title3)
-                    .foregroundColor(.gray)
-            }
-
-            Button(action: authViewModel.signOut) {  // 🔥 ログアウト処理をAuthViewModelに移動
+            Button(action: { authViewModel.signOut() }) {
                 Text("ログアウト")
                     .font(.title2)
                     .bold()
@@ -28,11 +21,18 @@ struct HomeView: View {
                     .cornerRadius(10)
             }
             .padding()
+
+            Text(authViewModel.message)  // 🔥 修正: グローバルのメッセージを表示
+                .foregroundColor(.blue)
+                .bold()
+                .padding()
+
+            Spacer()
         }
         .padding()
     }
 }
 
 #Preview {
-    HomeView().environmentObject(AuthViewModel())  // 🔥 environmentObject を追加
+    HomeView().environmentObject(AuthViewModel())
 }

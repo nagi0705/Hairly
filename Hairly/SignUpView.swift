@@ -1,27 +1,27 @@
 import SwiftUI
-import FirebaseAuth
 
 struct SignUpView: View {
     @State private var email: String = ""
     @State private var password: String = ""
-    @State private var message: String = ""
+    @EnvironmentObject var authViewModel: AuthViewModel  // 🔥 修正: メッセージをグローバルに管理
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("新規登録")
+            Text("Hairly")
                 .font(.largeTitle)
                 .bold()
+                .padding(.top, 40)
 
             TextField("メールアドレス", text: $email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.none)
                 .padding()
+                .autocapitalization(.none)
 
             SecureField("パスワード", text: $password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
 
-            Button(action: signUp) {
+            Button(action: { authViewModel.signUp(email: email, password: password) }) {
                 Text("サインアップ")
                     .font(.title2)
                     .bold()
@@ -33,25 +33,29 @@ struct SignUpView: View {
             }
             .padding()
 
-            Text(message)
-                .foregroundColor(.green)
+            Button(action: { authViewModel.login(email: email, password: password) }) {
+                Text("ログイン")
+                    .font(.title2)
+                    .bold()
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .padding()
+
+            Text(authViewModel.message)  // 🔥 修正: グローバルのメッセージを表示
+                .foregroundColor(.red)
                 .bold()
                 .padding()
+
+            Spacer()
         }
         .padding()
-    }
-
-    func signUp() {
-        Auth.auth().createUser(withEmail: email, password: password) { result, error in
-            if let error = error {
-                message = "エラー: \(error.localizedDescription)"
-            } else {
-                message = "ようこそ！"
-            }
-        }
     }
 }
 
 #Preview {
-    SignUpView()
+    SignUpView().environmentObject(AuthViewModel())
 }

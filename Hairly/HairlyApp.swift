@@ -1,7 +1,6 @@
 import SwiftUI
 import FirebaseCore
 
-// Firebaseの初期化用 AppDelegate
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
@@ -13,7 +12,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct HairlyApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject var authViewModel = AuthViewModel()  // 🔥 追加
+    @StateObject var authViewModel = AuthViewModel()
 
     var body: some Scene {
         WindowGroup {
@@ -24,7 +23,7 @@ struct HairlyApp: App {
                     SignUpView()
                 }
             }
-            .environmentObject(authViewModel)  // 🔥 追加
+            .environmentObject(authViewModel)
         }
     }
 }
