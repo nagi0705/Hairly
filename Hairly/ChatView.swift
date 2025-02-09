@@ -1,24 +1,24 @@
 import SwiftUI
-import PhotosUI
+import PhotosUI // 🔥 PhotosPicker を使うために追加
 
 struct ChatView: View {
     @State private var messageText: String = "" // メッセージ入力用
-    @State private var messages: [Any] = [] // メッセージ履歴（テキスト・画像両方対応）
-    @State private var selectedImage: UIImage? = nil // 選択した画像
-    @State private var isImagePickerPresented: Bool = false // Pickerの表示管理
+    @State private var selectedItem: PhotosPickerItem? = nil // 🔥 選択された写真データを管理
+    @State private var selectedImage: UIImage? = nil // 🔥 選択した写真を UIImage に変換して保持
+    @StateObject private var viewModel = LocalChatViewModel() // 🔥 ViewModel を追加
 
     var body: some View {
         VStack {
             ScrollViewReader { proxy in
                 List {
-                    ForEach(messages.indices, id: \.self) { index in
-                        if let text = messages[index] as? String {
+                    ForEach(viewModel.messages.indices, id: \.self) { index in
+                        if let text = viewModel.messages[index] as? String {
                             Text(text)
                                 .padding()
                                 .background(Color.blue.opacity(0.2))
                                 .cornerRadius(10)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                        } else if let image = messages[index] as? UIImage {
+                        } else if let image = viewModel.messages[index] as? UIImage {
                             Image(uiImage: image)
                                 .resizable()
                                 .scaledToFit()
@@ -28,8 +28,8 @@ struct ChatView: View {
                         }
                     }
                 }
-                .onChange(of: messages.count) { _ in
-                    if let last = messages.indices.last {
+                .onChange(of: viewModel.messages.count) { _ in
+                    if let last = viewModel.messages.indices.last {
                         proxy.scrollTo(last, anchor: .bottom)
                     }
                 }
@@ -51,18 +51,16 @@ struct ChatView: View {
                 }
                 .padding(.trailing)
 
-                // 📌 写真送信ボタン
-                Button(action: {
-                    isImagePickerPresented = true
-                }) {
+                // 📌 PhotosPicker を使った写真選択
+                PhotosPicker(selection: $selectedItem, matching: .images) {
                     Image(systemName: "photo.on.rectangle")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 30, height: 30)
                         .padding()
                 }
-                .sheet(isPresented: $isImagePickerPresented) {
-                    ImagePicker(selectedImage: $selectedImage, onImagePicked: sendImage)
+                .onChange(of: selectedItem) { newItem in
+                    loadImage(from: newItem)
                 }
             }
             .padding()
@@ -73,49 +71,27 @@ struct ChatView: View {
     // 📌 メッセージ送信処理
     func sendMessage() {
         guard !messageText.isEmpty else { return }
-        messages.append(messageText) // メッセージを配列に追加
+        viewModel.addMessage(messageText) // 🔥 ViewModel で管理
         messageText = "" // 入力フィールドをリセット
     }
 
-    // 📌 画像送信処理
-    func sendImage(image: UIImage) {
-        messages.append(image) // 画像を配列に追加
-    }
-}
+    // 📌 選択された写真を UIImage に変換して保存
+    func loadImage(from item: PhotosPickerItem?) {
+        guard let item = item else { return }
 
-// 📌 `PhotosPicker` 用のカスタム ImagePicker
-struct ImagePicker: UIViewControllerRepresentable {
-    @Binding var selectedImage: UIImage?
-    var onImagePicked: (UIImage) -> Void // 🔥 画像が選択されたら呼ばれるクロージャ
-
-    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
-        var parent: ImagePicker
-
-        init(_ parent: ImagePicker) {
-            self.parent = parent
-        }
-
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-            if let uiImage = info[.originalImage] as? UIImage {
-                parent.onImagePicked(uiImage) // 🔥 画像を送信
-                parent.selectedImage = nil // 選択画像をリセット
+        item.loadTransferable(type: Data.self) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let data):
+                    if let data = data, let uiImage = UIImage(data: data) {
+                        viewModel.addMessage(uiImage) // 🔥 ViewModel に追加して保存
+                    }
+                case .failure(let error):
+                    print("写真のロードエラー: \(error.localizedDescription)")
+                }
             }
-            picker.dismiss(animated: true)
         }
     }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController()
-        picker.delegate = context.coordinator
-        picker.sourceType = .photoLibrary
-        return picker
-    }
-
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 }
 
 #Preview {
