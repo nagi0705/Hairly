@@ -5,7 +5,7 @@ struct ChatView: View {
     @State private var messageText: String = "" // メッセージ入力用
     @State private var selectedItem: PhotosPickerItem? = nil // 🔥 選択された写真データを管理
     @State private var selectedImage: UIImage? = nil // 🔥 選択した写真を UIImage に変換して保持
-    @StateObject private var viewModel = LocalChatViewModel() // 🔥 ViewModel を追加
+    @StateObject private var viewModel = LocalChatViewModel() // 🔥 ViewModel を変更
 
     var body: some View {
         VStack {
@@ -28,7 +28,7 @@ struct ChatView: View {
                         }
                     }
                 }
-                .onChange(of: viewModel.messages.count) { _ in
+                .onChange(of: viewModel.messages.count) { _, _ in
                     if let last = viewModel.messages.indices.last {
                         proxy.scrollTo(last, anchor: .bottom)
                     }
@@ -59,7 +59,7 @@ struct ChatView: View {
                         .frame(width: 30, height: 30)
                         .padding()
                 }
-                .onChange(of: selectedItem) { newItem in
+                .onChange(of: selectedItem) { oldItem, newItem in
                     loadImage(from: newItem)
                 }
             }
@@ -84,13 +84,19 @@ struct ChatView: View {
                 switch result {
                 case .success(let data):
                     if let data = data, let uiImage = UIImage(data: data) {
-                        viewModel.addMessage(uiImage) // 🔥 ViewModel に追加して保存
+                        sendImage(image: uiImage) // 🔥 画像を送信
                     }
                 case .failure(let error):
                     print("写真のロードエラー: \(error.localizedDescription)")
                 }
             }
         }
+    }
+
+    // 📌 画像送信処理（修正済み）
+    func sendImage(image: UIImage) {
+        viewModel.addMessage(image) // 画像をチャットに追加
+        viewModel.classifyHairStyle(image: image) // 🔥 画像を解析して髪型認識
     }
 }
 
