@@ -27,6 +27,27 @@ class ChatViewModel: ObservableObject {
             }
     }
 
+    // 📌 画像を送信して髪型を分類
+    func sendImage(image: UIImage) {
+        HairClassifier.shared.classify(image: image) { result, hairStyleInfo in
+            DispatchQueue.main.async {
+                if let hairStyle = result, let info = hairStyleInfo {
+                    let messageText = """
+                    🏷 髪型: \(hairStyle)
+                    📝 説明: \(info.description)
+                    🔧 難易度: \(info.difficulty) | ⏳ 所要時間: \(info.timeRequired)
+                    📌 スタイリングのコツ:
+                    - \(info.stylingTips.joined(separator: "\n- "))
+                    🎨 おすすめのアイテム: \(info.recommendedProducts.joined(separator: ", "))
+                    """
+                    self.sendMessage(messageText) // 🔥 Firestore に送信
+                } else {
+                    self.sendMessage("❌ 髪型認識に失敗しました")
+                }
+            }
+        }
+    }
+
     // 🔥 Firestore にメッセージを送信
     func sendMessage(_ text: String) {
         guard !text.isEmpty else { return }
@@ -37,20 +58,6 @@ class ChatViewModel: ObservableObject {
             _ = try db.collection("messages").addDocument(from: newMessage)
         } catch {
             print("メッセージ送信エラー: \(error.localizedDescription)")
-        }
-    }
-
-    // 📌 画像を送信して髪型を分類
-    func sendImage(image: UIImage) {
-        HairClassifier.shared.classify(image: image) { result in
-            DispatchQueue.main.async {
-                if let hairStyle = result {
-                    let messageText = "認識結果: \(hairStyle)"
-                    self.sendMessage(messageText) // 🔥 結果をチャットに追加
-                } else {
-                    print("❌ 髪型分類に失敗しました")
-                }
-            }
         }
     }
 }

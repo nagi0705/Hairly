@@ -96,7 +96,24 @@ struct ChatView: View {
     // 📌 画像送信処理（修正済み）
     func sendImage(image: UIImage) {
         viewModel.addMessage(image) // 画像をチャットに追加
-        viewModel.classifyHairStyle(image: image) // 🔥 画像を解析して髪型認識
+        
+        HairClassifier.shared.classify(image: image) { result, hairStyleInfo in
+            DispatchQueue.main.async {
+                if let hairStyle = result, let info = hairStyleInfo {
+                    let message = """
+                    🏷 髪型: \(hairStyle)
+                    📝 説明: \(info.description)
+                    🔧 難易度: \(info.difficulty) | ⏳ 所要時間: \(info.timeRequired)
+                    📌 スタイリングのコツ:
+                    - \(info.stylingTips.joined(separator: "\n- "))
+                    🎨 おすすめのアイテム: \(info.recommendedProducts.joined(separator: ", "))
+                    """
+                    viewModel.addMessage(message)
+                } else {
+                    viewModel.addMessage("❌ 髪型認識に失敗しました")
+                }
+            }
+        }
     }
 }
 

@@ -1,0 +1,32 @@
+{
+    "LongHair": {
+        "description": "フェミニンで上品な印象を与えるロングヘア。",
+        "difficulty": "中級",
+        "timeRequired": "10分",
+        "stylingTips": [
+            "軽く巻いてボリュームを出すと、より華やかな印象に。",
+            "オイルやセラムでツヤ感をプラス。"
+        ],
+        "recommendedProducts": ["ヘアオイル", "カールアイロン"]
+    },
+    "MediumHair": {
+        "description": "扱いやすく、さまざまなスタイルにアレンジしやすいミディアムヘア。",
+        "difficulty": "初級",
+        "timeRequired": "7分",
+        "stylingTips": [
+            "ナチュラルな外ハネにするとトレンド感UP！",
+            "軽くワックスをつけて束感を出すのも◎。"
+        ],
+        "recommendedProducts": ["ワックス", "ストレートアイロン"]
+    },
+    "ShortHair": {
+        "description": "クールでアクティブな印象を与えるショートヘア。",
+        "difficulty": "上級",
+        "timeRequired": "5分",
+        "stylingTips": [
+            "ドライヤーで根元を立ち上げると動きが出やすい。",
+            "ワックスで束感を出すとオシャレ度UP！"
+        ],
+        "recommendedProducts": ["ワックス", "ヘアスプレー"]
+    }
+}

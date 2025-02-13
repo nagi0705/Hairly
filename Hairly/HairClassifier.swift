@@ -3,42 +3,50 @@ import Vision
 import UIKit
 
 class HairClassifier {
-    static let shared = HairClassifier() // シングルトンインスタンス
+    static let shared = HairClassifier()
     
     private var model: Hairly_ML_1?
-
+    
     init() {
         do {
             let config = MLModelConfiguration()
-            model = try Hairly_ML_1(configuration: config) // CoreMLモデルをロード
-            print("✅ CoreMLモデルをロードしました: \(String(describing: model))") // 確認用ログ
+            model = try Hairly_ML_1(configuration: config)
+            print("✅ CoreMLモデルをロードしました: \(String(describing: model))")
         } catch {
             print("❌ CoreMLモデルのロードに失敗: \(error)")
         }
     }
-
-    // 📌 画像を分類するメソッド
-    func classify(image: UIImage, completion: @escaping (String?) -> Void) {
+    
+    // 📌 画像を分類するメソッド（確率分布のログ出力を追加）
+    func classify(image: UIImage, completion: @escaping (String?, HairStyle?) -> Void) {
         guard let model = model else {
             print("❌ モデルがロードされていません")
-            completion(nil)
+            completion(nil, nil)
             return
         }
-
+        
         guard let pixelBuffer = image.toCVPixelBuffer() else {
             print("❌ UIImage から PixelBuffer への変換に失敗")
-            completion(nil)
+            completion(nil, nil)
             return
         }
-
+        
         do {
             let prediction = try model.prediction(image: pixelBuffer)
-            let result = prediction.target // 🔥 髪型のラベル
-            print("✅ 認識結果: \(result)") // 確認用ログ
-            completion(result)
+            let result = prediction.target // 🔥 認識された髪型のラベル
+            let probabilities = prediction.targetProbability // 🔥 髪型ごとの確率分布
+            
+            // 🔥 確率分布をログに出力
+            print("✅ 認識結果: \(result)")
+            print("📊 髪型の確率分布: \(probabilities)") // ← ここで各髪型の確率をチェック
+
+            // 髪型の説明データを取得
+            let hairStyleInfo = HairStyleManager.shared.getHairStyleInfo(for: result)
+            
+            completion(result, hairStyleInfo)
         } catch {
             print("❌ 画像解析エラー: \(error.localizedDescription)")
-            completion(nil)
+            completion(nil, nil)
         }
     }
 }
