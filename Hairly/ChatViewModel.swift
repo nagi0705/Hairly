@@ -38,7 +38,7 @@ class ChatViewModel: ObservableObject {
                     🔧 難易度: \(info.difficulty) | ⏳ 所要時間: \(info.timeRequired)
                     📌 スタイリングのコツ:
                     - \(info.stylingTips.joined(separator: "\n- "))
-                    🎨 おすすめのアイテム: \(info.recommendedProducts.joined(separator: ", "))
+                    🎨 おすすめのアイテム: \(info.recommendedProducts.map { $0.name }.joined(separator: ", "))
                     """
                     self.sendMessage(messageText) // 🔥 Firestore に送信
                 } else {
@@ -50,9 +50,10 @@ class ChatViewModel: ObservableObject {
 
     // 🔥 Firestore にメッセージを送信
     func sendMessage(_ text: String) {
-        guard !text.isEmpty else { return }
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedText.isEmpty else { return }
 
-        let newMessage = Message(text: text, timestamp: Date())
+        let newMessage = Message(text: trimmedText, timestamp: Date())
 
         do {
             _ = try db.collection("messages").addDocument(from: newMessage)

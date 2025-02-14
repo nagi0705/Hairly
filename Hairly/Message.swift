@@ -1,13 +1,8 @@
 import Foundation
 
-struct Message: Identifiable, Codable {
-    var id: String? // Firestore の documentID を格納する
+struct Message: Codable, Identifiable {
+    var id: String = UUID().uuidString
     var text: String
     var timestamp: Date
-
-    init(id: String? = nil, text: String, timestamp: Date) {
-        self.id = id
-        self.text = text
-        self.timestamp = timestamp
-    }
+    var recommendedProducts: [RecommendedProduct]? // 🔥 追加
 }

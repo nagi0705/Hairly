@@ -45,7 +45,7 @@ class HairClassifier {
             }
 
             // 髪型の説明データを取得
-            let hairStyleInfo = HairStyleManager.shared.getHairStyleInfo(for: result)
+            let hairStyleInfo = HairStyleManager.shared.getHairStyle(for: result) // 🔥 修正: getHairStyle(for:) を使用
             
             completion(result, hairStyleInfo)
         } catch {

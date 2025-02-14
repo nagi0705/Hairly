@@ -59,7 +59,7 @@ class LocalChatViewModel: ObservableObject {
                     🔧 難易度: \(info.difficulty) | ⏳ 所要時間: \(info.timeRequired)
                     📌 スタイリングのコツ:
                     - \(info.stylingTips.joined(separator: "\n- "))
-                    🎨 おすすめのアイテム: \(info.recommendedProducts.joined(separator: ", "))
+                    🎨 おすすめのアイテム: \(info.recommendedProducts.map { $0.name }.joined(separator: ", "))
                     """
                     self.addMessage(message)
                 } else {
@@ -68,4 +68,4 @@ class LocalChatViewModel: ObservableObject {
             }
         }
     }
-}
+} 
