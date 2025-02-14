@@ -13,11 +13,12 @@ class HairClassifier {
             model = try Hairly_ML_1(configuration: config)
             print("✅ CoreMLモデルをロードしました: \(String(describing: model))")
         } catch {
-            print("❌ CoreMLモデルのロードに失敗: \(error)")
+            print("❌ CoreMLモデルのロードに失敗: \(error.localizedDescription)")
+            model = nil // 失敗した場合、nilを設定
         }
     }
     
-    // 📌 画像を分類するメソッド（確率分布のログ出力を追加）
+    // 📌 画像を分類するメソッド（確率分布のログ出力を改良）
     func classify(image: UIImage, completion: @escaping (String?, HairStyle?) -> Void) {
         guard let model = model else {
             print("❌ モデルがロードされていません")
@@ -36,9 +37,12 @@ class HairClassifier {
             let result = prediction.target // 🔥 認識された髪型のラベル
             let probabilities = prediction.targetProbability // 🔥 髪型ごとの確率分布
             
-            // 🔥 確率分布をログに出力
+            // 📊 **確率分布を見やすく表示**
             print("✅ 認識結果: \(result)")
-            print("📊 髪型の確率分布: \(probabilities)") // ← ここで各髪型の確率をチェック
+            print("📊 髪型の確率分布:")
+            for (key, value) in probabilities {
+                print("   🔹 \(key): \(String(format: "%.2f%%", value * 100))") // 例: 85.45%
+            }
 
             // 髪型の説明データを取得
             let hairStyleInfo = HairStyleManager.shared.getHairStyleInfo(for: result)
@@ -66,20 +70,28 @@ extension UIImage {
                                          attributes as CFDictionary,
                                          &pixelBuffer)
         guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
+            print("❌ PixelBufferの作成に失敗: \(status)")
             return nil
         }
 
         CVPixelBufferLockBaseAddress(buffer, .readOnly)
-        let context = CGContext(data: CVPixelBufferGetBaseAddress(buffer),
-                                width: width, height: height,
-                                bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(buffer),
-                                space: CGColorSpaceCreateDeviceRGB(),
-                                bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue)
-        guard let cgImage = self.cgImage else {
+        guard let context = CGContext(data: CVPixelBufferGetBaseAddress(buffer),
+                                      width: width, height: height,
+                                      bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(buffer),
+                                      space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue) else {
+            print("❌ CGContextの作成に失敗")
             CVPixelBufferUnlockBaseAddress(buffer, .readOnly)
             return nil
         }
-        context?.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+        
+        guard let cgImage = self.cgImage else {
+            print("❌ UIImage から CGImage への変換に失敗")
+            CVPixelBufferUnlockBaseAddress(buffer, .readOnly)
+            return nil
+        }
+
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
         CVPixelBufferUnlockBaseAddress(buffer, .readOnly)
 
         return buffer
