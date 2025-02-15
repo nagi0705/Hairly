@@ -32,14 +32,28 @@ class ChatViewModel: ObservableObject {
         HairClassifier.shared.classify(image: image) { result, hairStyleInfo in
             DispatchQueue.main.async {
                 if let hairStyle = result, let info = hairStyleInfo {
+                    // 💡 スタイリングアドバイスを取得
+                    let stylingAdvice = HairStyleManager.shared.getStylingAdvice(for: hairStyle)
+
+                    // 🔍 デバッグログ
+                    print("📢 取得したスタイリングアドバイス (\(hairStyle)): \(stylingAdvice)")
+
                     let messageText = """
-                    🏷 髪型: \(hairStyle)
-                    📝 説明: \(info.description)
-                    🔧 難易度: \(info.difficulty) | ⏳ 所要時間: \(info.timeRequired)
-                    📌 スタイリングのコツ:
+                    🏷 **髪型**: \(hairStyle)
+                    📝 **説明**: \(info.description)
+                    🔧 **難易度**: \(info.difficulty) | ⏳ **所要時間**: \(info.timeRequired)
+
+                    📌 **スタイリングのコツ**:
                     - \(info.stylingTips.joined(separator: "\n- "))
-                    🎨 おすすめのアイテム: \(info.recommendedProducts.map { $0.name }.joined(separator: ", "))
+
+                    ✨ **スタイリングアドバイス**:
+                    \(stylingAdvice.isEmpty ? "アドバイスが見つかりません" : "- " + stylingAdvice.joined(separator: "\n- "))
+
+                    🎨 **おすすめのアイテム**: \(info.recommendedProducts.map { $0.name }.joined(separator: ", "))
                     """
+
+                    print("📢 送信するメッセージ: \(messageText)") // 🔍 デバッグログ
+
                     self.sendMessage(messageText) // 🔥 Firestore に送信
                 } else {
                     self.sendMessage("❌ 髪型認識に失敗しました")

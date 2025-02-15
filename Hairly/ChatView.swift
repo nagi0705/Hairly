@@ -100,14 +100,28 @@ struct ChatView: View {
         HairClassifier.shared.classify(image: image) { result, hairStyleInfo in
             DispatchQueue.main.async {
                 if let hairStyle = result, let info = hairStyleInfo {
+                    // 💡 スタイリングアドバイスを取得
+                    let stylingAdvice = HairStyleManager.shared.getStylingAdvice(for: hairStyle)
+
+                    // 🔍 デバッグログ
+                    print("📢 取得したスタイリングアドバイス (\(hairStyle)): \(stylingAdvice)")
+
                     let message = """
-                    🏷 髪型: \(hairStyle)
-                    📝 説明: \(info.description)
-                    🔧 難易度: \(info.difficulty) | ⏳ 所要時間: \(info.timeRequired)
-                    📌 スタイリングのコツ:
+                    🏷 **髪型**: \(hairStyle)
+                    📝 **説明**: \(info.description)
+                    🔧 **難易度**: \(info.difficulty) | ⏳ **所要時間**: \(info.timeRequired)
+
+                    📌 **スタイリングのコツ**:
                     - \(info.stylingTips.joined(separator: "\n- "))
-                    🎨 おすすめのアイテム: \(info.recommendedProducts.map { $0.name }.joined(separator: ", "))
+
+                    ✨ **スタイリングアドバイス**:
+                    \(stylingAdvice.isEmpty ? "アドバイスが見つかりません" : "- " + stylingAdvice.joined(separator: "\n- "))
+
+                    🎨 **おすすめのアイテム**: \(info.recommendedProducts.map { $0.name }.joined(separator: ", "))
                     """
+
+                    print("📢 送信するメッセージ: \(message)") // 🔍 デバッグログ
+
                     viewModel.addMessage(message)
                 } else {
                     viewModel.addMessage("❌ 髪型認識に失敗しました")

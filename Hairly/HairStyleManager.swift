@@ -14,11 +14,13 @@ struct HairStyle: Codable {
     let timeRequired: String           // セットにかかる時間
     let stylingTips: [String]          // スタイリングのアドバイス
     let recommendedProducts: [RecommendedProduct] // おすすめの製品（最大2つ）
+    let advice: [String]?              // 🔥 `advice` をオプショナル型に変更
 }
 
 // 髪型データを管理するクラス
 class HairStyleManager {
     static let shared = HairStyleManager()
+    
     private var hairStyles: [String: HairStyle] = [:]
 
     private init() {
@@ -31,7 +33,13 @@ class HairStyleManager {
             let decoder = JSONDecoder()
             if let decodedData = try? decoder.decode([String: HairStyle].self, from: data) {
                 hairStyles = decodedData
+                print("✅ HairStyleData.json の読み込みに成功しました")
+                print("📌 読み込んだデータ: \(decodedData)") // 🔍 デバッグ用ログ
+            } else {
+                print("❌ HairStyleData.json のデコードに失敗しました")
             }
+        } else {
+            print("❌ HairStyleData.json の読み込みに失敗しました")
         }
     }
 
@@ -44,5 +52,15 @@ class HairStyleManager {
     func getRecommendedProducts(for type: String) -> [RecommendedProduct]? {
         return hairStyles[type]?.recommendedProducts
     }
-}
 
+    // 髪型に応じたスタイリングアドバイスを取得する関数
+    func getStylingAdvice(for hairstyle: String) -> [String] {
+        if let advice = hairStyles[hairstyle]?.advice {
+            print("📢 \(hairstyle) のスタイリングアドバイスを取得: \(advice)")
+            return advice
+        } else {
+            print("❌ \(hairstyle) のスタイリングアドバイスが見つかりません")
+            return ["アドバイスが見つかりません"]
+        }
+    }
+}

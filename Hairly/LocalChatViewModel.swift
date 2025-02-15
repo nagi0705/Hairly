@@ -10,11 +10,21 @@ class LocalChatViewModel: ObservableObject {
         loadMessages()
     }
 
-    // 📌 メッセージ追加
-    func addMessage(_ message: Any) {
-        DispatchQueue.main.async {
-            self.messages.append(message)
-            self.saveMessages()
+    // 📌 メッセージ履歴を UserDefaults から読み込む
+    private func loadMessages() {
+        guard let savedData = UserDefaults.standard.array(forKey: storageKey) as? [Data] else { return }
+        messages = savedData.compactMap { data in
+            if let decoded = try? JSONDecoder().decode([String: String].self, from: data),
+               let type = decoded["type"], let content = decoded["content"] {
+                if type == "text" {
+                    return content
+                } else if type == "image",
+                          let imageData = Data(base64Encoded: content),
+                          let image = UIImage(data: imageData) {
+                    return image
+                }
+            }
+            return nil
         }
     }
 
@@ -32,35 +42,41 @@ class LocalChatViewModel: ObservableObject {
         UserDefaults.standard.set(messageData, forKey: storageKey)
     }
 
-    // 📌 保存されたメッセージを読み込む
-    private func loadMessages() {
-        guard let savedData = UserDefaults.standard.array(forKey: storageKey) as? [Data] else { return }
-        messages = savedData.compactMap { data in
-            if let decoded = try? JSONDecoder().decode([String: String].self, from: data),
-               let type = decoded["type"], let content = decoded["content"] {
-                if type == "text" {
-                    return content
-                } else if type == "image", let imageData = Data(base64Encoded: content), let image = UIImage(data: imageData) {
-                    return image
-                }
-            }
-            return nil
+    // 📌 メッセージ追加
+    func addMessage(_ message: Any) {
+        DispatchQueue.main.async {
+            self.messages.append(message)
+            self.saveMessages()
         }
     }
 
-    // 📌 画像を解析して髪型を判定
+    // 📌 画像を解析して髪型を判定し、スタイリングアドバイスを追加
     func classifyHairStyle(image: UIImage) {
         HairClassifier.shared.classify(image: image) { result, hairStyleInfo in
             DispatchQueue.main.async {
                 if let hairStyle = result, let info = hairStyleInfo {
+                    // 💡 スタイリングアドバイスを取得
+                    let stylingAdvice = HairStyleManager.shared.getStylingAdvice(for: hairStyle)
+
+                    // 🔍 デバッグログ: 取得したスタイリングアドバイスを確認
+                    print("📢 取得したスタイリングアドバイス (\(hairStyle)): \(stylingAdvice)")
+
                     let message = """
-                    🏷 髪型: \(hairStyle)
-                    📝 説明: \(info.description)
-                    🔧 難易度: \(info.difficulty) | ⏳ 所要時間: \(info.timeRequired)
-                    📌 スタイリングのコツ:
+                    🏷 **髪型**: \(hairStyle)
+                    📝 **説明**: \(info.description)
+                    🔧 **難易度**: \(info.difficulty) | ⏳ **所要時間**: \(info.timeRequired)
+                    
+                    📌 **スタイリングのコツ**:
                     - \(info.stylingTips.joined(separator: "\n- "))
-                    🎨 おすすめのアイテム: \(info.recommendedProducts.map { $0.name }.joined(separator: ", "))
+                    
+                    ✨ **スタイリングアドバイス**:
+                    \(stylingAdvice.isEmpty ? "スタイリングアドバイスが見つかりません" : "- " + stylingAdvice.joined(separator: "\n- "))
+                    
+                    🎨 **おすすめのアイテム**: \(info.recommendedProducts.map { $0.name }.joined(separator: ", "))
                     """
+
+                    print("📢 送信するメッセージ: \(message)") // 🔍 デバッグログ
+
                     self.addMessage(message)
                 } else {
                     self.addMessage("❌ 髪型認識に失敗しました")
@@ -68,4 +84,4 @@ class LocalChatViewModel: ObservableObject {
             }
         }
     }
-} 
+}
