@@ -6,8 +6,14 @@ class LocalChatViewModel: ObservableObject {
     private let storageKey = "chatMessages"
     private let maxHistoryCount = 10 // 🔥 最大保存件数を10件に制限
 
+    // 最新の髪型履歴を管理するためのプロパティ
+    private let maxHairHistoryCount = 3
+    private var hairStyleHistory: [String] = []
+    private let hairHistoryStorageKey = "hairStyleHistory"
+
     init() {
         loadMessages()
+        loadHairHistory()
     }
 
     // 📌 メッセージ履歴を UserDefaults から読み込む
@@ -42,6 +48,37 @@ class LocalChatViewModel: ObservableObject {
         UserDefaults.standard.set(messageData, forKey: storageKey)
     }
 
+    // 髪型履歴の読み込みメソッド
+    private func loadHairHistory() {
+        if let savedHistory = UserDefaults.standard.array(forKey: hairHistoryStorageKey) as? [String] {
+            hairStyleHistory = savedHistory
+        }
+    }
+
+    // 髪型履歴の保存メソッド
+    private func saveHairHistory() {
+        UserDefaults.standard.set(hairStyleHistory, forKey: hairHistoryStorageKey)
+    }
+
+    // 髪型履歴を更新するメソッド
+    private func updateHairHistory(with newHairStyle: String) {
+        // すでに同じ髪型が存在する場合は削除
+        if let index = hairStyleHistory.firstIndex(of: newHairStyle) {
+            hairStyleHistory.remove(at: index)
+        }
+        
+        // 新しい髪型を先頭に挿入
+        hairStyleHistory.insert(newHairStyle, at: 0)
+        
+        // 履歴の件数が上限を超えた場合、古いものを削除
+        if hairStyleHistory.count > maxHairHistoryCount {
+            hairStyleHistory = Array(hairStyleHistory.prefix(maxHairHistoryCount))
+        }
+        
+        // 更新後、UserDefaults に保存
+        saveHairHistory()
+    }
+
     // 📌 メッセージ追加
     func addMessage(_ message: Any) {
         DispatchQueue.main.async {
@@ -57,10 +94,13 @@ class LocalChatViewModel: ObservableObject {
                 if let hairStyle = result, let info = hairStyleInfo {
                     // 💡 スタイリングアドバイスを取得
                     let stylingAdvice = HairStyleManager.shared.getStylingAdvice(for: hairStyle)
-
+                    
+                    // ここで髪型履歴の更新を実施
+                    self.updateHairHistory(with: hairStyle)
+                    
                     // 🔍 デバッグログ: 取得したスタイリングアドバイスを確認
                     print("📢 取得したスタイリングアドバイス (\(hairStyle)): \(stylingAdvice)")
-
+                    
                     let message = """
                     🏷 **髪型**: \(hairStyle)
                     📝 **説明**: \(info.description)
@@ -74,9 +114,9 @@ class LocalChatViewModel: ObservableObject {
                     
                     🎨 **おすすめのアイテム**: \(info.recommendedProducts.map { $0.name }.joined(separator: ", "))
                     """
-
+                    
                     print("📢 送信するメッセージ: \(message)") // 🔍 デバッグログ
-
+                    
                     self.addMessage(message)
                 } else {
                     self.addMessage("❌ 髪型認識に失敗しました")
