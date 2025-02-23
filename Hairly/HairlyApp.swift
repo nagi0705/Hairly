@@ -4,8 +4,11 @@ import FirebaseFirestore // 🔥 Firestore のみをインポート
 
 // Firebaseの初期化用 AppDelegate
 class AppDelegate: NSObject, UIApplicationDelegate {
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        // Firebase 初期化
         FirebaseApp.configure()
         return true
     }
