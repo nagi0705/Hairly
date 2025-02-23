@@ -87,7 +87,7 @@ class LocalChatViewModel: ObservableObject {
         }
     }
 
-    // 📌 画像を解析して髪型を判定し、スタイリングアドバイスを追加
+    // 📌 画像を解析して髪型を判定し、スタイリングアドバイスと説明をチャットメッセージとして表示
     func classifyHairStyle(image: UIImage) {
         HairClassifier.shared.classify(image: image) { result, hairStyleInfo in
             DispatchQueue.main.async {
@@ -98,9 +98,10 @@ class LocalChatViewModel: ObservableObject {
                     // ここで髪型履歴の更新を実施
                     self.updateHairHistory(with: hairStyle)
                     
-                    // 🔍 デバッグログ: 取得したスタイリングアドバイスを確認
+                    // 🔍 デバッグログ: 取得したスタイリングアドバイスと説明を確認
                     print("📢 取得したスタイリングアドバイス (\(hairStyle)): \(stylingAdvice)")
                     
+                    // 分類結果に基づくチャットメッセージ（髪型の説明を含む）
                     let message = """
                     🏷 **髪型**: \(hairStyle)
                     📝 **説明**: \(info.description)
@@ -115,7 +116,7 @@ class LocalChatViewModel: ObservableObject {
                     🎨 **おすすめのアイテム**: \(info.recommendedProducts.map { $0.name }.joined(separator: ", "))
                     """
                     
-                    print("📢 送信するメッセージ: \(message)") // 🔍 デバッグログ
+                    print("📢 送信するメッセージ: \(message)")
                     
                     self.addMessage(message)
                 } else {

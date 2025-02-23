@@ -63,4 +63,9 @@ class HairStyleManager {
             return ["アドバイスが見つかりません"]
         }
     }
+    
+    // 新たに追加: 指定した髪型の説明を取得する関数
+    func getDescription(for hairstyle: String) -> String? {
+        return hairStyles[hairstyle]?.description
+    }
 }
