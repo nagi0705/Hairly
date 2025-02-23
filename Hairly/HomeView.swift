@@ -29,6 +29,19 @@ struct HomeView: View {
             }
             .padding()
 
+            // 📌 ヘアトレンドニュース画面に移動するボタン
+            NavigationLink(destination: HairTrendNewsView()) {
+                Text("ヘアトレンドニュースを読む")
+                    .font(.title2)
+                    .bold()
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.orange)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .padding()
+
             // 📌 ログアウトボタン
             Button(action: authViewModel.signOut) {
                 Text("ログアウト")
